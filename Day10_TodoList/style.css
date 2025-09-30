@@ -1,0 +1,89 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: rgb(19, 28, 110);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+h1 {
+    color: rgba(63, 70, 80);
+    text-align: center;
+    font-size: 40px;
+    margin-bottom: 20px;
+}
+#task {
+    height: 40px;
+    border-radius: 5px;
+    border: 1px solid gray;
+    width: 350px;
+    padding-left: 20px ;
+    margin-right: 5px;
+}
+
+#add-task-btn {
+    background-color: rgba(50, 91, 220);
+    color: white;
+    width: 100px;
+    border: none;
+    height: 40px;
+    border-radius: 5px;
+}
+
+.wrapper {
+    margin: 50px 0 50px;
+    background-color: white;
+    height: 100%;
+    width: 500px;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+#container {
+    margin-top: 20px;
+}
+
+
+
+
+#container div {
+    margin-top: 10px;
+    background-color: rgba(245, 247, 249);
+    border-radius: 10px;
+    padding: 30px;
+    font-size: 17px;
+    display: flex;
+    justify-content: space-between;
+}
+
+#container input {
+    height: 20px;
+    width: 20px;
+    vertical-align: middle;
+}
+
+label {
+    margin-left: 15px;
+}
+
+#container button {
+    border: none;
+    font-size: 20px;
+    display: block;
+}
+
+input:checked {
+    background-color: rgba(57, 81, 219);
+    color: white;
+}
+.completed {
+    text-decoration: line-through;
+    color: gray;
+}
