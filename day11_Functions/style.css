@@ -1,0 +1,12 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    background: linear-gradient(90deg, rgb(37, 150, 190), white);
+    /* background-color: rgb(37, 150, 190); */
+}
+
