@@ -43,12 +43,15 @@ function addNotes() {
     let noteButtons = document.createElement('div')
     noteButtons.appendChild(editButton)
     noteButtons.appendChild(deleteButton)
+
+    noteButtons.id = 'note-buttons';
     
     noteHeader.appendChild(noteTitle)
     noteHeader.appendChild(noteButtons)
     
     // Create container for note content
     let noteContentContainer = document.createElement('div');
+    noteContentContainer.id = 'note-content';
     let noteContent = notesObject["content"]; //Content Value
     noteContentContainer.textContent= noteContent;
 
@@ -62,11 +65,6 @@ function addNotes() {
         noteCard.appendChild(noteContentContainer);
         noteCard.appendChild(dateContainer);
         noteContainer.appendChild(noteCard);
-        localStorage.setItem('notes', JSON.stringify(noteCard));
-        let notes = JSON.parse(localStorage.getItem('notes'));
-        console.log(notes)
-        console.log(typeof noteCard);
-        // console.log(noteContainer)
     }
     title.value = '';
     content.value = '';

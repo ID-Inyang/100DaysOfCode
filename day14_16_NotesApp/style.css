@@ -91,7 +91,7 @@ label {
     background-color: white;
     color: black;
     width: 200px;
-    height: 250px;
+    height: 170px;
     border-radius: 10px;
     display: flex;
     flex-direction: column;
@@ -103,10 +103,21 @@ label {
 #note-header {
     display: flex;
     justify-content: space-between;
+    flex-grow: 0;
+}
 
+#note-buttons button {
+    border: none;
+    margin-right: 10px;
+}
+
+#note-content {
+    flex-grow: 1;
+    margin-top: 20px;
 }
 
 #date {
     color: gray;
     font-size: smaller;
+    flex-grow: 0;
 }
