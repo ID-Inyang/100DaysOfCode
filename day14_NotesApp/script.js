@@ -2,23 +2,88 @@ let noteContainer = document.getElementById('display-notes');
 let title = document.getElementById('title');
 let content = document.getElementById('content');
 let addNoteBtn = document.getElementById('add-note-btn');
+// document.title = 'My Page';
+let notesArr = [];
 
-let notes = [];
 
-function addNote() {
-    let card = document.createElement('div');
-    card.id = 'card';
-    let noteHeader = document.createElement('h3');
-    let noteTitle = title.value;
-    let noteParagraph = document.createElement('p');
-    let noteContent = content.value;
+function addNotes() {
+    let notesObject = {
+        "title": title.value,
+        "content": content.value
+    }
 
-    noteHeader.appendChild(noteTitle);
-    noteParagraph.appendChild(noteContent);
-    card.appendChild(noteHeader);
-    card.appendChild(noteParagraph);
-    noteContainer.appendChild(card);
+    let noteCard = document.createElement('div');
+    noteCard.id = 'card';
+
+    // Create header for the note card title
+    let noteHeader = document.createElement('div');
+    noteHeader.id = 'note-header';
+    
+    // get the title value
+    let noteTitle = document.createElement('h3')
+    noteTitle.textContent = notesObject["title"]; //Title Value
+    
+    // Create the edit button
+    let editButton = document.createElement('button');
+    editButton.innerText = "✏️";
+    
+    // Add an event listener to the edit button
+    editButton.addEventListener('click', () => {
+        title.value = notesObject['title'];
+        content.value = notesObject['content'];
+        noteCard.remove();
+    });
+
+    let deleteButton = document.createElement('button');
+    deleteButton.innerText = "🗑️";
+    
+    // Add an event listener to the edit button
+    deleteButton.addEventListener('click', () => {noteCard.remove()});
+
+    let noteButtons = document.createElement('div')
+    noteButtons.appendChild(editButton)
+    noteButtons.appendChild(deleteButton)
+    
+    noteHeader.appendChild(noteTitle)
+    noteHeader.appendChild(noteButtons)
+    
+    // Create container for note content
+    let noteContentContainer = document.createElement('div');
+    let noteContent = notesObject["content"]; //Content Value
+    noteContentContainer.textContent= noteContent;
+
+    // get the date
+    let dateContainer = document.createElement('p');
+    dateContainer.innerText = addDate();
+    dateContainer.id = 'date';
+
+    if (title.value || content.value) {
+        noteCard.appendChild(noteHeader);
+        noteCard.appendChild(noteContentContainer);
+        noteCard.appendChild(dateContainer);
+        noteContainer.appendChild(noteCard);
+        localStorage.setItem('notes', JSON.stringify(noteCard));
+        let notes = JSON.parse(localStorage.getItem('notes'));
+        console.log(notes)
+        console.log(typeof noteCard);
+        // console.log(noteContainer)
+    }
+    title.value = '';
+    content.value = '';
+};
+
+function addDate(){
+    let now = new Date();
+    let monthsArray = ['January', 'Febuary', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'Decemeber'];
+    let month = monthsArray[now.getMonth()];
+    let dayDate = now.getDate();
+    let year = now.getFullYear();
+    let days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+    let day = days[now.getDay()];
+    let message = `${day} ${month} ${dayDate}, ${year}`;
+    return message
 }
 
-addNoteBtn.addEventListener('click', addNote());
 
+// noteContainer.innerHTML = notes;
+addNoteBtn.addEventListener('click', addNotes);

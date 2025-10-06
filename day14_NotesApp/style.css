@@ -21,6 +21,12 @@ header p {
     margin-top: 11px;
 }
 
+h1 {
+  background: linear-gradient(90deg, red, blue);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 section {
     margin: 0px auto 30px;
     border-radius: 10px;
@@ -31,7 +37,7 @@ section {
 }
 
 section, #display-notes {
-    width: 60%;
+    width: 80%;
 }
 
 label {
@@ -78,11 +84,29 @@ label {
     box-shadow: 0 0 5px black;
     padding: 40px;
     display: flex;
+    flex-wrap: wrap;
 }
 
 #card {
     background-color: white;
     color: black;
-    width: 300px;
+    width: 200px;
     height: 250px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    margin: 10px 10px;
+    justify-content: space-between;
+    padding: 15px;
+}
+
+#note-header {
+    display: flex;
+    justify-content: space-between;
+
+}
+
+#date {
+    color: gray;
+    font-size: smaller;
 }
