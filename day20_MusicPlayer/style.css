@@ -1,0 +1,103 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: "poppins";
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(26, 23, 51);
+}
+
+.player {
+    width: 500px;
+    height: 600px;
+    border-radius: 10px;
+    border: 1px solid rgba(51, 49, 67);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-top: 50px;
+    color: white;
+    background-color: #16151f;
+    gap: 10px;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 0 4px gray;
+}
+
+@keyframes spin {
+    0%{
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.spin {
+    animation: spin 1s ease infinite;
+}
+
+#cover-art {
+    width: 250px;
+    height: 250px;
+    border-radius: 100%;
+    box-shadow: 0 0 3px gray;
+}
+
+.control-btns-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-around;
+}
+
+button {
+    background-color: #16151f;
+    border: none;
+    border-radius: 5px;
+    margin: 10px;
+    letter-spacing: 2px;
+    text-shadow: 0 0 4px black;
+    font-size: 40px;
+    transition: transform 0.3 ease;
+}
+
+button:hover {
+    transform: scale(1.2);
+}
+
+.progress-bar {
+    margin-top: 20px;
+
+}
+
+.baseline {
+    height: 6px;
+    background-color: rgba(228, 227, 229);
+    position: absolute;
+    right: 100px;
+    z-index: -1;
+    width: 60%;
+    border-radius: 3px;
+    /* margin: auto; */
+}
+
+.filled-portion {
+    width: 10px;
+    background-color: orangered;
+}
+
+.knob {
+    background-color: green;
+    border-radius: 50%;
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    cursor: pointer;
+}

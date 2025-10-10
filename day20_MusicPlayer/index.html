@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Music Player</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="player">
+      <div><h2 class="song-title">What If?</h2></div>
+      <div><h3 class="artist-name">ID. Inyang</h3></div>
+      <img src="img/about-time.jpg" id="cover-art" alt="Album art" />
+      <audio
+        id="audio-player"
+        prev
+        src="music/Baronnation x brid (about time) album- what if - track 1.mp3"
+      >
+        No Audio
+      </audio>
+      <div class="control-btns-container">
+        <button id="prev-btn">⏮️</button>
+        <button id="play-pause-btn">⏯️</button>
+        <button id="next-btn">⏭️</button>
+      </div>
+
+      <div class="progress-bar">
+          <div class="baseline">
+            <div class="filled-portion"></div>
+            <div class="knob"></div>
+          </div>
+      </div>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>
