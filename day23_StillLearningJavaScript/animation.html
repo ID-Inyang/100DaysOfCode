@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Focus Grind 2.0 - Interactive NPCs</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+/* --------------------- Reset & Body --------------------- */
+* {margin:0;padding:0;box-sizing:border-box;}
+body {font-family: 'Rajdhani', sans-serif; background: linear-gradient(135deg,#0a0a0a,#1a1a2e,#0f3460); color:#fff; min-height:100vh; display:flex; justify-content:center; align-items:center; overflow:hidden;}
+button{cursor:pointer;}
+
+/* --------------------- Container --------------------- */
+.game-container {width:100%; max-width:1200px; height:95vh; position:relative; border-radius:20px; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,0.7);}
+
+/* --------------------- Screens --------------------- */
+.screen {position:absolute; top:0; left:0; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; opacity:0; pointer-events:none; transition:opacity 0.8s ease; z-index:10; padding:40px;}
+.screen.active {opacity:1; pointer-events:all;}
+
+/* Start Screen */
+.start-screen {background: radial-gradient(circle,#1a1a2e,#0a0a0a); text-align:center;}
+.game-title {font-family:'Orbitron',monospace;font-size:4rem;font-weight:900;background:linear-gradient(45deg,#ff6b6b,#ffa500,#ffd93d,#4ecdc4);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:20px;text-shadow:0 0 30px rgba(255,255,255,0.3);}
+.game-subtitle {font-size:1.5rem;margin-bottom:40px;color:#ccc;}
+.start-btn {background:linear-gradient(45deg,#ff6b6b,#ffa500); color:white; border:none; padding:15px 40px; font-size:1.2rem; font-family:'Orbitron',monospace; border-radius:30px; transition:all 0.3s ease; box-shadow:0 5px 15px rgba(255,107,107,0.4); position:relative; overflow:hidden;}
+.start-btn:hover {transform:translateY(-3px); box-shadow:0 8px 20px rgba(255,107,107,0.6);}
+.start-btn::before {content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent); transition:left 0.5s ease;}
+.start-btn:hover::before {left:100%;}
+
+/* Game Screen */
+.game-screen {background: radial-gradient(circle at center,#16213e,#0a0a0a); overflow:hidden;}
+.game-header {position:absolute; top:20px; left:0; width:100%; display:flex; justify-content:space-between; padding:0 40px; z-index:5;}
+.level-display {font-family:'Orbitron',monospace;font-size:1.5rem;background:rgba(255,255,255,0.1);padding:10px 20px;border-radius:10px;backdrop-filter:blur(10px);}
+.focus-meter {width:300px;height:20px;background:rgba(255,255,255,0.1);border-radius:10px;overflow:hidden;position:relative;}
+.focus-fill {height:100%;background:linear-gradient(90deg,#4ecdc4,#45b7d1);width:100%;transition:width 0.3s ease;position:relative;overflow:hidden;}
+.focus-fill::after {content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);animation:focus-shine 2s infinite;}
+@keyframes focus-shine {0%{left:-100%;}100%{left:100%;}}
+
+.game-area {width:90%; height:70%; background:rgba(255,255,255,0.05); border-radius:20px; position:relative; overflow:hidden; margin-top:80px; border:2px solid rgba(255,255,255,0.1);}
+.environment {position:absolute; top:0; left:0; width:100%; height:100%; transition:all 1s ease;}
+.city-bg {background:linear-gradient(180deg,#2c3e50,#34495e);}
+.office-bg {background:linear-gradient(180deg,#34495e,#2c3e50);}
+.studio-bg {background:linear-gradient(180deg,#8e44ad,#9b59b6);}
+.success-bg {background:linear-gradient(180deg,#27ae60,#2ecc71);}
+
+/* Player & NPCs */
+.character {position:absolute; bottom:50px; transition:all 0.2s ease; z-index:10; filter:drop-shadow(0 5px 15px rgba(0,0,0,0.3)); cursor:pointer;}
+.character-body {display:flex; flex-direction:column; align-items:center;}
+.head {width:50px; height:50px; background:#f5d7b4; border-radius:50%; z-index:2; box-shadow:0 2px 10px rgba(0,0,0,0.3); position:relative;}
+.face {position:absolute; top:12px; left:50%; transform:translateX(-50%); width:30px; height:25px;}
+.eyes {display:flex; justify-content:space-between; margin-bottom:5px;}
+.eye {width:8px; height:8px; background:#2b2b2b; border-radius:50%;}
+.mouth {width:15px;height:4px;background:#8b5e3c;border-radius:2px;margin:0 auto;transition:all 0.3s ease;}
+.character.happy .mouth{border-radius:50%;height:8px;}
+.character.determined .mouth{width:12px;height:3px;}
+.body {width:70px;height:90px;border-radius:15px 15px 0 0;background:#4a4a8a;position:relative;top:-5px; z-index:1;border:2px solid rgba(255,255,255,0.2);}
+.character.evolved .body{background:linear-gradient(45deg,#4a4a8a,#0f3460);border-color:#ffd93d;}
+.arms {position:absolute; top:20px; width:100%; display:flex; justify-content:space-between;}
+.arm {width:12px;height:60px;background:#f5d7b4;border-radius:6px;}
+.character.working .left-arm{animation:working-arm 1s ease-in-out infinite;}
+@keyframes working-arm {0%,100%{transform:rotate(-20deg);}50%{transform:rotate(20deg);}}
+.hands {position:absolute;top:55px;width:100%;display:flex;justify-content:space-between;}
+.hand {width:15px;height:12px;background:#f5d7b4;border-radius:50%;}
+
+/* NPC Glow & Dialogue */
+.npc-glow {position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:120%;height:120%;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.3) 0%,transparent 70%);opacity:0;transition:opacity 0.3s ease;}
+.npc:hover .npc-glow {opacity:1;}
+.dialogue-box {position:absolute;bottom:150px;left:50%;transform:translateX(-50%);width:80%;background:rgba(0,0,0,0.8);padding:20px;border-radius:15px;border:2px solid rgba(255,255,255,0.2);backdrop-filter:blur(10px);z-index:15;opacity:0;transition:opacity 0.5s ease;}
+.dialogue-box.active {opacity:1;}
+.dialogue-text{font-size:1.2rem;line-height:1.5;margin-bottom:15px;text-align:center;}
+.dialogue-options{display:flex;justify-content:center;gap:15px;}
+.dialogue-option{background:rgba(255,255,255,0.1);color:white;border:1px solid rgba(255,255,255,0.3);padding:8px 16px;border-radius:20px;cursor:pointer;transition:all 0.3s ease;position:relative;overflow:hidden;}
+.dialogue-option::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent);transition:left 0.5s ease;}
+.dialogue-option:hover{background:rgba(255,255,255,0.2);transform:translateY(-2px);border-color:#ffd93d;}
+.dialogue-option:hover::before{left:100%;}
+
+/* Lyrics */
+.lyrics-display{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);width:80%;text-align:center;font-family:'Orbitron',monospace;font-size:1.2rem;background:rgba(0,0,0,0.5);padding:15px;border-radius:10px;backdrop-filter:blur(10px);opacity:0;transition:opacity 0.5s ease;}
+.lyrics-display.active{opacity:1;}
+
+/* Particles */
+.particles{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;}
+.particle{position:absolute;width:4px;height:4px;background:#fff;border-radius:50%;opacity:0;animation:particle-float 3s linear infinite;}
+@keyframes particle-float {0%{transform:translateY(100vh) scale(0);opacity:0;}20%{opacity:1;}80%{opacity:1;}100%{transform:translateY(-100px) scale(1.5);opacity:0;}}
+
+/* Achievement Toast */
+.achievement-toast{position:fixed;top:20px;right:20px;background:linear-gradient(135deg,#1a1a2e,#0f3460);padding:15px;border-radius:10px;border-left:4px solid #ffd93d;transform:translateX(400px);transition:transform 0.5s ease;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,0.3);}
+.achievement-toast.show{transform:translateX(0);}
+.achievement-title{font-family:'Orbitron',monospace;color:#ffd93d;margin-bottom:5px;}
+
+/* Progress Bar */
+.progress-bar{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);width:80%;height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;z-index:5;}
+.progress-fill{height:100%;background:linear-gradient(90deg,#ff6b6b,#ffa500,#ffd93d,#4ecdc4);width:0%;transition:width 0.5s ease;}
+</style>
+</head>
+<body>
+<div class="game-container">
+    <!-- Start Screen -->
+    <div class="screen start-screen active" id="startScreen">
+        <h1 class="game-title">FOCUS GRIND 2.0</h1>
+        <p class="game-subtitle">Navigate life, stay focused, achieve greatness</p>
+        <button class="start-btn" id="startBtn">START GAME</button>
+        <p style="margin-top:20px; color:#888; max-width:500px;">Use arrow keys or WASD to move. Interact with characters. Maintain your focus!</p>
+    </div>
+
+    <!-- Game Screen -->
+    <div class="screen game-screen" id="gameScreen">
+        <div class="particles" id="particles"></div>
+        <div class="game-header">
+            <div class="level-display">LEVEL: <span id="levelNumber">1</span> | GROWTH: <span id="growthValue">0%</span></div>
+            <div class="focus-meter"><div class="focus-fill" id="focusFill"></div></div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="game-area" id="gameArea">
+            <div class="environment city-bg" id="environment"></div>
+            <!-- Player -->
+            <div class="character protagonist" id="playerCharacter" style="left:100px;top:300px;">
+                <div class="character-body">
+                    <div class="head">
+                        <div class="face">
+                            <div class="eyes"><div class="eye"></div><div class="eye"></div></div>
+                            <div class="mouth"></div>
+                        </div>
+                    </div>
+                    <div class="body"></div>
+                    <div class="arms">
+                        <div class="arm left-arm"></div>
+                        <div class="arm right-arm"></div>
+                    </div>
+                    <div class="hands">
+                        <div class="hand left-hand"></div>
+                        <div class="hand right-hand"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- NPCs -->
+            <div class="character npc" data-id="npc1" style="left:600px;top:250px;">
+                <div class="npc-glow"></div>
+            </div>
+            <div class="character npc" data-id="npc2" style="left:800px;top:400px;">
+                <div class="npc-glow"></div>
+            </div>
+            <!-- Dialogue Box -->
+            <div class="dialogue-box" id="dialogueBox">
+                <div class="dialogue-text" id="dialogueText">Hello!</div>
+                <div class="dialogue-options" id="dialogueOptions"></div>
+            </div>
+        </div>
+        <div class="lyrics-display" id="lyricsDisplay">Stay Focused!</div>
+        <div class="achievement-toast" id="achievementToast">
+            <div class="achievement-title" id="achievementTitle">ACHIEVEMENT</div>
+            <div class="achievement-desc" id="achievementDesc">Description</div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ------------------ VARIABLES ------------------
+const startScreen = document.getElementById('startScreen');
+const gameScreen = document.getElementById('gameScreen');
+const startBtn = document.getElementById('startBtn');
+const player = document.getElementById('playerCharacter');
+const focusFill = document.getElementById('focusFill');
+const progressFill = document.getElementById('progressFill');
+const lyricsDisplay = document.getElementById('lyricsDisplay');
+const environment = document.getElementById('environment');
+const particlesContainer = document.getElementById('particles');
+const achievementToast = document.getElementById('achievementToast');
+const achievementTitle = document.getElementById('achievementTitle');
+const achievementDesc = document.getElementById('achievementDesc');
+const levelNumber = document.getElementById('levelNumber');
+const growthValue = document.getElementById('growthValue');
+const dialogueBox = document.getElementById('dialogueBox');
+const dialogueText = document.getElementById('dialogueText');
+const dialogueOptions = document.getElementById('dialogueOptions');
+const npcs = document.querySelectorAll('.npc');
+
+let focus = 100, growth = 0, level = 1, moveSpeed = 5;
+let keys = {ArrowUp:false,ArrowDown:false,ArrowLeft:false,ArrowRight:false,w:false,a:false,s:false,d:false};
+let lyricIndex = 0;
+let interactingNPC = null;
+
+// NPC Dialogue Data
+const npcData = {
+    npc1: {
+        dialogues:[
+            {text:"Keep pushing! +5% Focus",effect:()=>focus=Math.min(100,focus+5)},
+            {text:"Relax a bit. -2% Growth",effect:()=>growth=Math.max(0,growth-2)}
+        ]
+    },
+    npc2: {
+        dialogues:[
+            {text:"You're doing great! +3% Growth",effect:()=>growth=Math.min(100,growth+3)},
+            {text:"Focus up! +4% Focus",effect:()=>focus=Math.min(100,focus+4)}
+        ]
+    }
+};
+
+// ------------------ FUNCTIONS ------------------
+function startGame(){
+    startScreen.classList.remove('active');
+    gameScreen.classList.add('active');
+    updateUI();
+    startLyrics();
+    createParticles();
+    movePlayer();
+    gameLoop();
+}
+
+function updateUI(){
+    focusFill.style.width = focus+'%';
+    progressFill.style.width = growth+'%';
+    if(focus>70) focusFill.style.background='linear-gradient(90deg,#4ecdc4,#45b7d1)';
+    else if(focus>40) focusFill.style.background='linear-gradient(90deg,#ffa500,#ffd93d)';
+    else focusFill.style.background='linear-gradient(90deg,#ff6b6b,#ff4757)';
+    growthValue.textContent = Math.round(growth)+'%';
+    levelNumber.textContent = level;
+}
+
+function startLyrics(){
+    setInterval(()=>{
+        lyricsDisplay.textContent = ["Focus on your goals!","Discipline creates freedom.","Small steps lead to big changes.","Keep moving forward.","Consistency is key."][lyricIndex % 5];
+        lyricsDisplay.classList.add('active');
+        setTimeout(()=>lyricsDisplay.classList.remove('active'),4000);
+        lyricIndex++;
+    },5000);
+}
+
+function createParticles(){
+    setInterval(()=>{
+        for(let i=0;i<15;i++){
+            const p = document.createElement('div');
+            p.className='particle';
+            p.style.left=Math.random()*100+'%';
+            p.style.animationDelay=Math.random()*2+'s';
+            p.style.animationDuration=(2+Math.random()*2)+'s';
+            particlesContainer.appendChild(p);
+            setTimeout(()=>{particlesContainer.removeChild(p)},4000);
+        }
+    },1000);
+}
+
+function movePlayer(){
+    const gameArea = document.getElementById('gameArea');
+    const areaRect = gameArea.getBoundingClientRect();
+    const playerRect = player.getBoundingClientRect();
+    let x = parseInt(player.style.left)||100;
+    let y = parseInt(player.style.top)||300;
+
+    if(keys.ArrowUp || keys.w) y-=moveSpeed;
+    if(keys.ArrowDown || keys.s) y+=moveSpeed;
+    if(keys.ArrowLeft || keys.a) x-=moveSpeed;
+    if(keys.ArrowRight || keys.d) x+=moveSpeed;
+
+    x = Math.max(0, Math.min(areaRect.width - playerRect.width, x));
+    y = Math.max(0, Math.min(areaRect.height - playerRect.height, y));
+
+    player.style.left = x+'px';
+    player.style.top = y+'px';
+
+    // Expressions
+    player.classList.remove('happy','determined');
+    if(focus>70) player.classList.add('happy');
+    else if(focus>40) player.classList.add('determined');
+
+    // Evolution
+    if(growth>=50 && !player.classList.contains('evolved')){
+        player.classList.add('evolved');
+        showAchievement("CHARACTER EVOLVED","Reached 50% growth!");
+    }
+
+    checkNPCInteraction();
+    requestAnimationFrame(movePlayer);
+}
+
+function gameLoop(){
+    setInterval(()=>{
+        focus = Math.max(0,focus-0.2);
+        growth = Math.min(100,growth+0.1*(focus/100));
+        if(growth>=level*25){ level++; updateEnvironment(); showAchievement("LEVEL UP",`Reached Level ${level}`); moveSpeed+=0.5; }
+        updateUI();
+    },1000);
+}
+
+function updateEnvironment(){
+    if(level<3) environment.className='environment city-bg';
+    else if(level<5) environment.className='environment office-bg';
+    else if(level<7) environment.className='environment studio-bg';
+    else environment.className='environment success-bg';
+}
+
+function showAchievement(title,desc){
+    achievementTitle.textContent = title;
+    achievementDesc.textContent = desc;
+    achievementToast.classList.add('show');
+    setTimeout(()=>achievementToast.classList.remove('show'),3000);
+}
+
+// ------------------ NPC INTERACTIONS ------------------
+function checkNPCInteraction(){
+    interactingNPC = null;
+    const px = parseInt(player.style.left);
+    const py = parseInt(player.style.top);
+    npcs.forEach(npc=>{
+        const nx = parseInt(npc.style.left);
+        const ny = parseInt(npc.style.top);
+        const dist = Math.hypot(px - nx, py - ny);
+        if(dist<100){ // proximity
+            interactingNPC = npc.dataset.id;
+            dialogueBox.classList.add('active');
+            renderDialogue(interactingNPC);
+        }
+    });
+    if(!interactingNPC) dialogueBox.classList.remove('active');
+}
+
+function renderDialogue(npcId){
+    dialogueText.textContent = "Choose an action:";
+    dialogueOptions.innerHTML='';
+    npcData[npcId].dialogues.forEach((d,i)=>{
+        const btn = document.createElement('div');
+        btn.className='dialogue-option';
+        btn.textContent=d.text;
+        btn.onclick=()=>{d.effect(); updateUI(); dialogueBox.classList.remove('active');};
+        dialogueOptions.appendChild(btn);
+    });
+}
+
+// ------------------ EVENT LISTENERS ------------------
+startBtn.addEventListener('click', startGame);
+
+document.addEventListener('keydown',e=>{
+    if(keys.hasOwnProperty(e.key)) keys[e.key]=true;
+});
+document.addEventListener('keyup',e=>{
+    if(keys.hasOwnProperty(e.key)) keys[e.key]=false;
+});
+</script>
+</body>
+</html>
