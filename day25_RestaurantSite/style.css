@@ -1,0 +1,14 @@
+.hero-section {
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-align: center;
+    color: white;
+    height: 200px;
+    background-image: url("https://th.bing.com/th/id/R.e771d626044e9f749bd542eff2cda195?rik=cEvzDyD%2fXBagEw&pid=ImgRaw&r=0");
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.menu {
+    background-color: steelblue;
+}
