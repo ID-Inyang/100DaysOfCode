@@ -1,0 +1,239 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Neon Courier - Starter (Phaser)</title>
+  <style>
+    body { margin:0; background:#0b0b12; }
+    #game { width: 100vw; height: 100vh; display:flex; align-items:center; justify-content:center; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+</head>
+<body>
+<div id="game"></div>
+<script>
+class Boot extends Phaser.Scene {
+  constructor(){ super('boot'); }
+  preload(){
+    // simple generated graphics as textures
+    this.load.image('bg', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2NgYGD4DwABBAEAi6hE2wAAAABJRU5ErkJggg==');
+  }
+  create(){
+    this.scene.start('play');
+  }
+}
+
+class Play extends Phaser.Scene {
+  constructor(){ super('play'); }
+  preload(){
+    // Create simple shapes via graphics -> textures
+  }
+  create(){
+    // world bounds
+    this.cameras.main.setBackgroundColor('#0b0b12');
+
+    // Add parallax background rectangles (simple)
+    for(let i=0;i<4;i++){
+      const g = this.add.rectangle(400, 60 + i*60, 1000, 120, 0x111122).setAlpha(0.06*(4-i)).setScrollFactor(0.2 + i*0.1);
+    }
+
+    // Static platforms group
+    this.platforms = this.physics.add.staticGroup();
+    // ground
+    this.platforms.create(400, 580, null).setDisplaySize(800, 40).refreshBody().setTint(0x222233);
+    // some rooftops
+    this.platforms.create(150, 460, null).setDisplaySize(220, 24).refreshBody().setTint(0x2b2b3a);
+    this.platforms.create(430, 380, null).setDisplaySize(260, 24).refreshBody().setTint(0x2b2b3a);
+    this.platforms.create(700, 320, null).setDisplaySize(200, 24).refreshBody().setTint(0x2b2b3a);
+
+    // Create simple player as rectangle texture
+    const gfx = this.add.graphics();
+    gfx.fillStyle(0xff4d6d,1);
+    gfx.fillRoundedRect(0,0,32,48,6);
+    gfx.generateTexture('player',32,48);
+    gfx.clear();
+
+    this.player = this.physics.add.sprite(100, 520, 'player').setSize(26,40).setOffset(3,4);
+    this.player.setCollideWorldBounds(true);
+    this.player.setBounce(0.05);
+    this.player.body.setGravityY(900);
+
+    // collisions
+    this.physics.add.collider(this.player, this.platforms);
+
+    // dash variables
+    this.canDash = true;
+    this.dashCooldown = 500; // ms
+    this.isDashing = false;
+
+    // controls
+    this.keys = this.input.keyboard.addKeys({left:'A', right:'D', up:'W', jump:'SPACE', dash:'SHIFT', use:'E'});
+
+    // camera follow
+    this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
+    this.cameras.main.setBounds(0,0,1600,600);
+    this.physics.world.setBounds(0,0,1600,600);
+
+    // create a simple drone enemy
+    const droneG = this.add.graphics();
+    droneG.fillStyle(0x00e5ff,1);
+    droneG.fillCircle(0,0,12);
+    droneG.generateTexture('drone',26,26);
+    droneG.clear();
+
+    this.drone = this.physics.add.sprite(500, 350, 'drone');
+    this.drone.setImmovable(true);
+    this.drone.body.setAllowGravity(false);
+    this.drone.patrol = {x1:420, x2:620, dir:1, speed:60};
+
+    this.physics.add.collider(this.drone, this.platforms);
+
+    // collision player vs drone
+    this.physics.add.overlap(this.player, this.drone, ()=> {
+      // simple knockback and respawn
+      this.hitPlayer();
+    }, null, this);
+
+    // package (delivery)
+    const pk = this.add.graphics();
+    pk.fillStyle(0xffd166,1); pk.fillRect(0,0,12,12); pk.generateTexture('pack',12,12); pk.clear();
+    this.package = this.physics.add.staticSprite(740, 286, 'pack');
+
+    this.physics.add.overlap(this.player, this.package, ()=> {
+      this.deliver();
+    }, null, this);
+
+    // HUD text
+    this.credits = 0;
+    this.hud = this.add.text(10,10, 'Credits: 0', {font:'16px Arial', fill:'#fff'}).setScrollFactor(0);
+    this.objective = this.add.text(10,30, 'Objective: Deliver package', {font:'14px Arial', fill:'#aaa'}).setScrollFactor(0);
+
+    // simple ground width (extend world)
+    // Add world width visual
+    this.add.rectangle(800, 550, 1600, 100, 0x0d0d10).setAlpha(0.02);
+
+    // allow double jump
+    this.jumpCount = 0;
+    this.maxJumps = 2;
+
+    // timers
+    this.lastDashTime = 0;
+
+    // simple particle for dash trail
+    this.particles = this.add.particles('player');
+    this.emitter = this.particles.createEmitter({
+      speed: 0, scale: {start:0.5, end:0}, alpha: {start:0.6,end:0},
+      lifespan: 200, frequency: 30, follow: this.player
+    });
+    this.emitter.on = false;
+  }
+
+  update(time, delta){
+    // drone patrol update
+    if(this.drone){
+      const p = this.drone.patrol;
+      this.drone.x += p.dir * p.speed * delta/1000;
+      if(this.drone.x < p.x1){ p.dir = 1; }
+      if(this.drone.x > p.x2){ p.dir = -1; }
+    }
+
+    const left = this.keys.left.isDown;
+    const right = this.keys.right.isDown;
+    const jump = Phaser.Input.Keyboard.JustDown(this.keys.jump);
+    const dash = Phaser.Input.Keyboard.JustDown(this.keys.dash);
+
+    // horizontal movement
+    const speed = 180;
+    if(!this.isDashing){
+      if(left){ this.player.setVelocityX(-speed); }
+      else if(right){ this.player.setVelocityX(speed); }
+      else { this.player.setVelocityX(0); }
+    }
+
+    // jump / double jump
+    if(jump){
+      if(this.player.body.onFloor()){
+        this.player.setVelocityY(-420);
+        this.jumpCount = 1;
+      } else if(this.jumpCount < this.maxJumps){
+        this.player.setVelocityY(-380);
+        this.jumpCount++;
+      }
+    }
+    if(this.player.body.onFloor()){
+      this.jumpCount = 0;
+    }
+
+    // dash
+    if(dash && this.canDash && !this.isDashing){
+      this.performDash(time);
+    }
+
+    // dash movement (short burst)
+    if(this.isDashing){
+      // maintain dash velocity for short time
+      // done in timer callback
+    }
+
+    // HUD update
+    this.hud.setText('Credits: ' + this.credits);
+  }
+
+  performDash(time){
+    this.isDashing = true;
+    this.canDash = false;
+    this.emitter.on = true;
+    // dash direction
+    const dir = (this.keys.left.isDown) ? -1 : (this.keys.right.isDown) ? 1 : (this.player.flipX ? -1 : 1);
+    this.player.setVelocityX(700 * dir);
+    this.player.setVelocityY(0);
+    // small invulnerability (we'll ignore collisions by disabling overlap briefly)
+    this.physics.world.disable(this.drone.body);
+    this.time.delayedCall(180, ()=> {
+      this.isDashing = false;
+      this.emitter.on = false;
+      // restore drone collision
+      this.physics.world.enable(this.drone.body);
+      this.drone.body.setImmovable(true);
+      // cooldown timer
+      this.time.delayedCall(this.dashCooldown, ()=> { this.canDash = true; }, [], this);
+    }, [], this);
+  }
+
+  hitPlayer(){
+    // respawn player to start and reduce credits
+    this.credits = Math.max(0, this.credits - 5);
+    this.player.setPosition(100,520);
+    // small camera shake
+    this.cameras.main.shake(150, 0.01);
+  }
+
+  deliver(){
+    // simple deliver action: award credits and move package away
+    this.credits += 25;
+    this.package.destroy();
+    this.objective.setText('Delivered! Collect reward and try a harder route.');
+    // spawn new package somewhere (simple)
+    this.time.delayedCall(1000, ()=> {
+      this.package = this.physics.add.staticSprite(1400, 300, 'pack');
+      this.physics.add.overlap(this.player, this.package, ()=> this.deliver(), null, this);
+    }, [], this);
+  }
+}
+
+const config = {
+  type: Phaser.AUTO,
+  width: 800,
+  height: 600,
+  parent: 'game',
+  physics: {
+    default: 'arcade',
+    arcade: { gravity: { y: 0 }, debug: false }
+  },
+  scene: [Boot, Play]
+};
+
+const game = new Phaser.Game(config);
+</script>
+</body>
+</html>
