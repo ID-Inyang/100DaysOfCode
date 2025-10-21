@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>JavaScript Dates</title>
+  </head>
+  <body>
+    <h2>JavaScript ISO Dates</h2>
+
+    <p id="demo"></p>
+
+    <script>
+      let d = new Date("2015-03-25");
+      //   d = new Date("2034-09");
+      //   d = new Date("2024-08-25T12:00:00Z");
+      d = new Date("2015-3-25");
+      d = new Date("2013/03/23");
+
+      let msec = Date.parse("March 21, 2012");
+      d = new Date(msec);
+
+      const minute = 1000 * 60;
+      const hour = minute * 60;
+      const day = hour * 24;
+      const year = day * 365;
+
+      let years = Math.round(Date.now() / year);
+      document.getElementById("demo").innerHTML = years;
+    </script>
+  </body>
+</html>
