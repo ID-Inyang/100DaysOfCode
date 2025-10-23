@@ -16,4 +16,5 @@ console.log("..........")
 // console.log(fruits instanceof Array);
 
 // fruits.length = 1;
-console.log(fruits[-1]);
+console.log(fruits[-1]); 
+console.log("Day 33")
