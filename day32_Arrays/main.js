@@ -18,3 +18,11 @@ console.log("..........")
 // fruits.length = 1;
 console.log(fruits[-1]); 
 console.log("Day 33")
+
+// const numbers = [45, 4, 9, 16, 25];
+// let txt = "";
+// number.forEach(myFunction);
+
+// function myFunction(value, index, array) {
+//     txt += value + "<br>";
+// }
